@@ -10,8 +10,6 @@ uses
 
 type
 
-  TCryptoCurrency = (ccUnknown, ccBitcoin, ccEthereum);
-
   { TCryptoCompare }
 
   TCryptoCompare = class
@@ -44,7 +42,7 @@ uses
   ;
 
 const
-  CC_ENDPOINT='https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH&tsyms=USD,EUR,RUB&apikey=%s';
+  CC_ENDPOINT='https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,PASC&tsyms=USD,EUR,RUB&apikey=%s';
 
 { TCryptoCompare }
 

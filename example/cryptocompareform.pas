@@ -5,7 +5,7 @@ unit CryptoCompareForm;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls, IniPropStorage
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls, IniPropStorage, ComCtrls
   ;
 
 type
@@ -21,6 +21,10 @@ type
     EdtRate: TLabeledEdit;
     LblCurrencyIn: TLabel;
     LblCurrencyOut: TLabel;
+    Memo1: TMemo;
+    PageControl1: TPageControl;
+    TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
     procedure BtnGetClick({%H-}Sender: TObject);
   private
 
@@ -45,6 +49,7 @@ procedure TForm1.BtnGetClick(Sender: TObject);
 begin
   _CryptoCompare.APYKey:=EdtToken.Text;
   EdtRate.Text:=FloatToStr(_CryptoCompare.CryptoCompare[CmbBxIn.Text, CmbBxOut.Text]);
+  Memo1.Text:=_CryptoCompare.JSONReply.FormatJSON();
 end;
 
 end.

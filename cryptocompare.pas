@@ -18,18 +18,18 @@ type
     FCriticalSection: TRTLCriticalSection;
     FJSON: TJSONObject;
     FLastUpdate: TDateTime;
-    function GetCryptoCompare(const aCodeIn: String; const aCodeOut: String): Double;
+    function GetCryptoCompare(aCodeIn: String; aCodeOut: String): Double;
     function GetJSONReply: TJSONObject;
   protected
-    property JSONReply: TJSONObject read GetJSONReply;
   public
     constructor Create;
-    destructor Destroy; override;  
+    destructor Destroy; override;
     function IsRelevant: Boolean; 
     procedure CheckRelevance;
     procedure UpdateData;
     property APYKey: String read FAPIKey write FAPIKey;
     property CryptoCompare[aCodeIn: String; aCodeOut: String]: Double read GetCryptoCompare;
+    property JSONReply: TJSONObject read GetJSONReply;
   end;
 
 var
@@ -42,7 +42,7 @@ uses
   ;
 
 const
-  CC_ENDPOINT='https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,PASC&tsyms=USD,EUR,RUB&apikey=%s';
+  CC_ENDPOINT='https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,PASC,XRP,BCH,LTC&tsyms=USD,EUR,RUB&apikey=%s';
 
 { TCryptoCompare }
 
@@ -57,7 +57,7 @@ begin
   InitCriticalSection(FCriticalSection);
 end;
 
-function TCryptoCompare.GetCryptoCompare(const aCodeIn: String; const aCodeOut: String): Double;
+function TCryptoCompare.GetCryptoCompare(aCodeIn: String; aCodeOut: String): Double;
 var
   aCC: TJSONObject;
   aRate: QWord;
@@ -65,7 +65,9 @@ const
   CCODE='USD';
 begin
   Result:=0;
-  if SameText(aCodeIn, aCodeOut) then
+  aCodeIn:=UpperCase(aCodeIn);
+  aCodeOut:=UpperCase(aCodeOut);
+  if SameStr(aCodeIn, aCodeOut) then
     Exit(1);
   if JSONReply.Find(aCodeIn, aCC) then
   begin

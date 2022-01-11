@@ -113,7 +113,7 @@ begin                        //  (vcUnknown, vcRUB, vcUSD, vcEUR, vcGBP, vcKZT, 
     'kzt', 'тенге', '₸':                                                            Result:=vcKZT;
     'try', 'лира', 'лир':                                                           Result:=vcTRY;
     'jpy', 'иена', '¥', 'иен':                                                      Result:=vcJPY;
-    'cny', 'юань', 'юаней', 'rmb', 'юани':                                          Result:=vcCNY;
+    'cny', 'юань', 'юаней', 'rmb', 'юани', '元':                                    Result:=vcCNY;
     'tjs', 'сомони':                                                                Result:=vcTJS;
     'uzs', 'сум':                                                                   Result:=vcUZS;
     'uah', 'гривны', 'гривна', 'гривен', '₴':                                       Result:=vcUAH;

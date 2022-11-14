@@ -100,11 +100,8 @@ uses
   DateUtils, fphttpclient, fpjsonrtti, jsonparser, jsonscanner
   ;
 
-//const
-//  CharCodes: array [TValuteCurrency] of PChar = ('', 'RUB', 'USD', 'EUR', 'GBP', 'KZT', 'TRY', 'JPY', 'CNY', 'TJS', 'UZS', 'UAH', 'KGS');
-
 function StrToValuteCurrency(const aValute: String): TValuteCurrency;
-begin                        //  (vcUnknown, vcRUB, vcUSD, vcEUR, vcGBP, vcKZT, vcTRY, vcJPY, vcCNY, vcTJS, vcUZS, vcUAH);
+begin
   case AnsiLowerCase(aValute) of
     'rub', 'руб', 'р', '₽', 'rubles', 'ruble', 'рублей', 'рубль', 'рубля', 'рубли': Result:=vcRUB;
     'usd', 'долларов', '$', 'dollars', 'dollar', 'доллар':                          Result:=vcUSD;
@@ -114,7 +111,7 @@ begin                        //  (vcUnknown, vcRUB, vcUSD, vcEUR, vcGBP, vcKZT, 
     'try', 'лира', 'лир':                                                           Result:=vcTRY;
     'jpy', 'иена', '¥', 'иен':                                                      Result:=vcJPY;
     'cny', 'юань', 'юаней', 'rmb', 'юани', '元':                                    Result:=vcCNY;
-    'tjs', 'сомони':                                                                Result:=vcTJS;
+    'tjs', 'сомони', 'сомани':                                                      Result:=vcTJS;
     'uzs', 'сум':                                                                   Result:=vcUZS;
     'uah', 'гривны', 'гривна', 'гривен', '₴':                                       Result:=vcUAH;
     'kgs', 'сом', 'сомов', 'сома':                                                  Result:=vcKGS;

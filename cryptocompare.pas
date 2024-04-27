@@ -42,7 +42,7 @@ uses
   ;
 
 const
-  CC_ENDPOINT='https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,PASC,XRP,BCH,LTC,TONCOIN&tsyms=USD,EUR,RUB&apikey=%s';
+  CC_ENDPOINT='https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,PASC,XRP,BCH,LTC,TONCOIN,ETC&tsyms=USD,EUR,RUB&apikey=%s';
 
 { TCryptoCompare }
 

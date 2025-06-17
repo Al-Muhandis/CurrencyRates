@@ -27,7 +27,7 @@ type
     function IsRelevant: Boolean; 
     procedure CheckRelevance;
     procedure UpdateData;
-    property APYKey: String read FAPIKey write FAPIKey;
+    property APIKey: String read FAPIKey write FAPIKey;
     property CryptoCompare[aCodeIn: String; aCodeOut: String]: Double read GetCryptoCompare;
     property JSONReply: TJSONObject read GetJSONReply;
   end;

@@ -47,7 +47,7 @@ uses
 
 procedure TForm1.BtnGetClick(Sender: TObject);
 begin
-  _CryptoCompare.APYKey:=EdtToken.Text;
+  _CryptoCompare.APIKey:=EdtToken.Text;
   EdtRate.Text:=FloatToStr(_CryptoCompare.CryptoCompare[CmbBxIn.Text, CmbBxOut.Text]);
   Memo1.Text:=_CryptoCompare.JSONReply.FormatJSON();
 end;

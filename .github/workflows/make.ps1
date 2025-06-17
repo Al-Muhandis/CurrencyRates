@@ -128,7 +128,7 @@ Function Request-URL([Switch] $Post) {
                 } | ConvertTo-Json
             }
         }
-        Falce {
+        False {
             Return @{
                 Uri = 'https://postman-echo.com/get'
             }

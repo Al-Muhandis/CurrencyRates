@@ -16,64 +16,82 @@ Options:
 }
 
 Function Build-Project {
-    New-Variable -Option Constant -Name VAR -Value @{
-        Src = 'example'
-        Use = 'use'
-        Pkg = 'use\components.txt'
-    }
-    If (! (Test-Path -Path $Var.Src)) {
-        'Source do not find!' | Out-Host
+    New-Variable -Option Constant -Name VAR -Value (Get-Content -Path $PSCommandPath.Replace('ps1', 'json') | ConvertFrom-Json)
+    If (! (Test-Path -Path $Var.app)) {
+        "$([char]27)[31m.... $($Var.app) did not find!$([char]27)[0m" | Out-Host
         Exit 1
     }
     If (Test-Path -Path '.gitmodules') {
         & git submodule update --init --recursive --force --remote | Out-Host
-        ".... [[$($LastExitCode)]] git submodule update" | Out-Host
+        "$([char]27)[33m.... [[$($LastExitCode)]] git submodule update$([char]27)[0m" | Out-Host
     }
     @(
         @{
             Cmd = 'lazbuild'
-            Url = 'https://fossies.org/windows/misc/lazarus-3.8-fpc-3.2.2-win64.exe'
+            Url = 'https://fossies.org/windows/misc/lazarus-4.2-fpc-3.2.2-win64.exe'
             Path = "C:\Lazarus"
         }
-    ) | Where-Object { ! (Test-Path -Path $_.Path) } |
-        ForEach-Object {
-            $_.Url | Request-File | Install-Program
-            $Env:PATH+=";$($_.Path)"
-            (Get-Command $_.Cmd).Source | Out-Host
+    ) | Where-Object {
+        ! (Test-Path -Path $_.Path)
+    } | ForEach-Object {
+        $_.Url | Request-File | Install-Program
+        $Env:PATH+=";$($_.Path)"
+        Return (Get-Command $_.Cmd).Source
+    } | Out-Host
+    $VAR.Pkg | ForEach-Object {
+        @{
+            Name = $_
+            Uri = "https://packages.lazarus-ide.org/$($_).zip"
+            Path = "$($Env:HOME)\.lazarus\onlinepackagemanager\packages\$($_)"
+            OutFile = (New-TemporaryFile).FullName
         }
-    If (Test-Path -Path $VAR.Use) {
-        If (Test-Path -Path $VAR.Pkg) {
-            Get-Content -Path $VAR.Pkg |
-                Where-Object {
-                    ! (Test-Path -Path "$($VAR.Use)\$($_)") &&
-                    ! (& lazbuild --verbose-pkgsearch $_ ) &&
-                    ! (& lazbuild --add-package $_)
-                } | ForEach-Object {
-                    Return @{
-                        Uri = "https://packages.lazarus-ide.org/$($_).zip"
-                        Path = "$($VAR.Use)\$($_)"
-                        OutFile = (New-TemporaryFile).FullName
-                    }
-                } | ForEach-Object -Parallel {
-                    Invoke-WebRequest -OutFile $_.OutFile -Uri $_.Uri
-                    Expand-Archive -Path $_.OutFile -DestinationPath $_.Path
-                    Remove-Item $_.OutFile
-                    Return ".... download $($_.Uri)"
-                } | Out-Host
-        }
-        (Get-ChildItem -Filter '*.lpk' -Recurse -File –Path $VAR.Use).FullName |
+    } | Where-Object {
+        ! (Test-Path -Path $_.Path) &&
+        ! (& lazbuild --verbose-pkgsearch $_.Name ) &&
+        ! (& lazbuild --add-package $_.Name)
+    } | ForEach-Object -Parallel {
+        Invoke-WebRequest -OutFile $_.OutFile -Uri $_.Uri
+        New-Item -Type Directory -Path $_.Path | Out-Null
+        Expand-Archive -Path $_.OutFile -DestinationPath $_.Path
+        Remove-Item $_.OutFile
+        (Get-ChildItem -Filter '*.lpk' -Recurse -File –Path $_.Path).FullName |
             ForEach-Object {
                 & lazbuild --add-package-link $_ | Out-Null
-                Return ".... [$($LastExitCode)] add package link $($_)"
+                Return "$([char]27)[33m.... [$($LastExitCode)] add package link $($_)$([char]27)[0m"
+            }
+    } | Out-Host
+    If (Test-Path -Path $VAR.lib) {
+        (Get-ChildItem -Filter '*.lpk' -Recurse -File –Path $VAR.lib).FullName |
+            ForEach-Object {
+                & lazbuild --add-package-link $_ | Out-Null
+                Return "$([char]27)[33m.... [$($LastExitCode)] add package link $($_)$([char]27)[0m"
             } | Out-Host
     }
-    Exit (
-        (Get-ChildItem -Filter '*.lpi' -Recurse -File –Path $Var.Src).FullName |
-            Sort-Object |
+    Exit $(Switch (Test-Path -Path $Var.tst) {
+        true {
+            ((Get-ChildItem -Filter '*.lpk' -Recurse -File –Path $Var.tst).FullName |
+                ForEach-Object {
+                    $Env:INSTANTFPC = $VAR.opt
+                    $Output = (& instantfpc $_ --all --format=plain)
+                    $exitCode = Switch ($LastExitCode) {
+                        0 {0}
+                        Default {
+                            $Output | Out-Host
+                            1
+                        }
+                    }
+                    Return $exitCode
+                } | Measure-Object -Sum
+            ).Sum
+        }
+        Default {0}
+    }) + (
+        (Get-ChildItem -Filter '*.lpi' -Recurse -File –Path $Var.app).FullName |
+            Where-Object { $_ -notlike "*tgpclocker*" } |  
             ForEach-Object {
-                $Output = (& lazbuild --build-all --recursive --no-write-project --build-mode='release' $_)
-                $Result = @(".... [$($LastExitCode)] build project $($_)")
-                $exitCode = Switch ($LastExitCode) {
+                $Output = (& lazbuild --build-all --recursive --no-write-project $_)
+                $Result = @("$([char]27)[32m.... [$($LastExitCode)] build project $($_)$([char]27)[0m")
+                $exitCode = $(Switch ($LastExitCode) {
                     0 {
                         $Result += $Output | Select-String -Pattern 'Linking'
                         0
@@ -82,7 +100,7 @@ Function Build-Project {
                         $Result += $Output | Select-String -Pattern 'Error:', 'Fatal:'
                         1
                     }
-                }
+                })
                 $Result | Out-Host
                 Return $exitCode
             } | Measure-Object -Sum
@@ -91,7 +109,7 @@ Function Build-Project {
 
 Function Request-File {
     While ($Input.MoveNext()) {
-        New-Variable -Name VAR -Option Constant -Value @{
+        New-Variable -Option Constant -Name VAR -Value @{
             Uri = $Input.Current
             OutFile = (Split-Path -Path $Input.Current -Leaf).Split('?')[0]
         }
@@ -116,8 +134,8 @@ Function Install-Program {
 
 Function Request-URL([Switch] $Post) {
     $VAR = Switch ($Post) {
-        True {
-            Return @{
+        true {
+            @{
                 Method = 'POST'
                 Headers = @{
                     ContentType = 'application/json'
@@ -128,8 +146,8 @@ Function Request-URL([Switch] $Post) {
                 } | ConvertTo-Json
             }
         }
-        False {
-            Return @{
+        false {
+            @{
                 Uri = 'https://postman-echo.com/get'
             }
         }
@@ -143,6 +161,14 @@ Function Switch-Action {
     Invoke-ScriptAnalyzer -EnableExit -Path $PSCommandPath
     If ($args.count -gt 0) {
         Switch ($args[0]) {
+            'lint' {
+                Invoke-ScriptAnalyzer -EnableExit -Recurse -Path '.'
+                (Get-ChildItem -Filter '*.ps1' -Recurse -Path '.').FullName |
+                    ForEach-Object {
+                        Invoke-Formatter -ScriptDefinition $(Get-Content -Path $_ | Out-String) |
+                            Set-Content -Path $_
+                    }
+            }
             'build' {
                 Build-Project
             }

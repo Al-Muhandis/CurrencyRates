@@ -190,7 +190,7 @@ begin
   try
     if ParamCount > 0 then
       case ParamStr(1) of
-        'build': BuildAll(['Rx', 'ZeosDBO']);
+        'build': BuildAll([]);
         else
           OutLog(etError, ParamStr(1));
       end;
